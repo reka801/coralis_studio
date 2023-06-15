@@ -12,54 +12,56 @@ class UserController extends BaseController{
     }
 
     public function store()
-{
-    // Lakukan validasi data jika diperlukan
-    $validationRules = [
-        'email' => [
-            'rules' => 'required|valid_email|is_unique[users.email]',
-            'errors' => [
-                'required' => 'Email field is required.',
-                'valid_email' => 'Invalid email format.',
-                'is_unique' => 'Email already exists in the database.'
-            ]
-        ],
-        'name' => 'required',
-        'password' => 'required|min_length[6]',
-        'profile_picture' => 'uploaded[profile_picture]|max_size[profile_picture,1024]|ext_in[profile_picture,jpg,png]'
-    ];
-
-    if (!$this->validate($validationRules)) {
-        // Jika validasi gagal, tampilkan pesan kesalahan dan kembali ke halaman pendaftaran
-        $validation = $this->validator;
-        return redirect()->back()->withInput()->with('validation', $validation);
+    {
+        // Lakukan validasi data jika diperlukan
+        $validationRules = [
+            'email' => [
+                'rules' => 'required|valid_email|is_unique[users.email]',
+                'errors' => [
+                    'required' => 'Email field is required.',
+                    'valid_email' => 'Invalid email format.',
+                    'is_unique' => 'Email already exists in the database.'
+                ]
+            ],
+            'name' => 'required',
+            'password' => 'required|min_length[6]',
+            'profile_picture' => 'uploaded[profile_picture]|max_size[profile_picture,1024]|ext_in[profile_picture,jpg,png]'
+        ];
+    
+        if (!$this->validate($validationRules)) {
+            // Jika validasi gagal, tampilkan pesan kesalahan dan kembali ke halaman pendaftaran
+            $validation = $this->validator;
+            return redirect()->back()->withInput()->with('validation', $validation);
+        }
+    
+        // Tangkap data dari formulir pendaftaran
+        $email = $this->request->getVar('email');
+        $name = $this->request->getVar('name');
+        $password = $this->request->getVar('password');
+        $profilePicture = $this->request->getFile('profile_picture');
+    
+        // Hash password menggunakan bcrypt
+        $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
+    
+        // Simpan gambar ke direktori public/img/user dengan nama yang acak
+        $newName = $profilePicture->getRandomName();
+        $profilePicture->move(ROOTPATH . 'public/img/user', $newName);
+    
+        // Simpan data ke database
+        $userModel = new UserModel();
+        $userModel->insert([
+            'email' => $email,
+            'name' => $name,
+            'password' => $hashedPassword,
+            'profile_picture' => $newName,
+            'created_at' => date('Y-m-d H:i:s')
+        ]);
+    
+        // Tampilkan pesan sukses dan redirect ke halaman login
+        $successMessage = 'Account created successfully. Please login with your credentials.';
+        return redirect()->to('/user/login')->with('success', $successMessage);
     }
-
-    // Tangkap data dari formulir pendaftaran
-    $email = $this->request->getVar('email');
-    $name = $this->request->getVar('name');
-    $password = $this->request->getVar('password');
-    $profilePicture = $this->request->getFile('profile_picture');
-
-    // Hash password menggunakan bcrypt
-    $hashedPassword = password_hash($password, PASSWORD_BCRYPT);
-
-    // Simpan gambar ke direktori public/img/user dengan nama yang acak
-    $newName = $profilePicture->getRandomName();
-    $profilePicture->move(ROOTPATH . 'public/img/user', $newName);
-
-    // Simpan data ke database
-    $userModel = new UserModel();
-    $userModel->insert([
-        'email' => $email,
-        'name' => $name,
-        'password' => $hashedPassword,
-        'profile_picture' => $newName,
-        'created_at' => date('Y-m-d H:i:s')
-    ]);
-
-    // Redirect ke halaman login
-    return redirect()->to('/user/login');
-}
+    
 
     
     public function login()
@@ -99,15 +101,18 @@ class UserController extends BaseController{
         $session->set('profile_picture', $user['profile_picture']);
 
         // Redirect ke halaman landing
-        return redirect()->to('/user/landing/' . $user['id']);
+        return redirect()->to('/user/landing/' . $user['id'])
+            ->with('success', 'Login successful. Welcome, ' . $user['name'] . '!');
     } else {
         // Autentikasi gagal, kembali ke halaman login dengan pesan kesalahan
         $validation = \Config\Services::validation();
         $validation->setError('email', 'Invalid email or password.');
 
-        return redirect()->back()->withInput()->with('validation', $validation);
+        return redirect()->back()->withInput()->with('validation', $validation)
+            ->with('error', 'Invalid email or password. Please try again.');
     }
 }
+
 
 
 

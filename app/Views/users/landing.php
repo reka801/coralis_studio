@@ -55,8 +55,11 @@
             <div class="col-md-4 offset-md-3 mx-auto">
                 <h1>Welcome, <?php echo $name; ?>!</h1>
                 <?php if (session()->getFlashdata('success')): ?>
-                    <div class="alert alert-success" role="alert">
+                    <div id="flash-message" class="alert alert-success alert-dismissible fade show" role="alert">
                         <?php echo session()->getFlashdata('success'); ?>
+                        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
                     </div>
                 <?php endif; ?>
                 <div class="card">
@@ -71,6 +74,17 @@
             </div>
         </div>
     </div>
-</body>
 
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $(".alert").alert();
+
+            $(".close").on("click", function() {
+                $(this).closest(".alert").alert("close");
+            });
+        });
+    </script>
+</body>
 </html>

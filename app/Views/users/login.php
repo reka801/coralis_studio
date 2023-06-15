@@ -25,6 +25,11 @@
                                     <?php echo session()->getFlashdata('error'); ?>
                                 </div>
                             <?php endif; ?>
+                            <?php if (session()->getFlashdata('success')): ?>
+    <div class="alert alert-success" role="alert">
+        <?php echo session()->getFlashdata('success'); ?>
+    </div>
+<?php endif; ?>
                             <form method="POST" class="my-login-validation" novalidate="" action="/user/processLogin">
                                 <div class="form-group">
                                     <label for="email">E-Mail Address</label>
