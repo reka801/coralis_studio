@@ -54,6 +54,11 @@
         <div class="row">
             <div class="col-md-4 offset-md-3 mx-auto">
                 <h1>Welcome, <?php echo $name; ?>!</h1>
+                <?php if (session()->getFlashdata('success')): ?>
+                    <div class="alert alert-success" role="alert">
+                        <?php echo session()->getFlashdata('success'); ?>
+                    </div>
+                <?php endif; ?>
                 <div class="card">
                     <img src="/img/user/<?php echo $profile_picture ?>" class="card-img-top" alt="Profile Picture">
                     <div class="card-body">
@@ -67,4 +72,5 @@
         </div>
     </div>
 </body>
+
 </html>
